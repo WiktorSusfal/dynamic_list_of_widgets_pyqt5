@@ -78,9 +78,12 @@ class DLW_ListElement(qtw.QWidget):
     # it triggers the event handler with proper request type (DELETION)
     def deleteObjectFromList(self):
         event_arguments = buildEventArgs([self, DLW_Requests.DELETION.value])
-        # important to unsubscribe from event handler before deleting object
-        self.selection_handler -= self.itemRequestHandler
         self.selection_handler(event_arguments)
+
+    # function to unsubscribe from event handler before deleting object;
+    # is called on the main list object level
+    def unsubscribeHandler(self):
+        self.selection_handler -= self.itemRequestHandler
 
     # function is called when event handler object is triggered by some list item;
     def itemRequestHandler(self, event_arguments):
@@ -145,24 +148,33 @@ class DLW_List(qtw.QWidget):
     # overload of '-=' operator to remove elements from list
     # support for removing items by item object reference or item string uuid
     def __isub__(self, element):
+        element_to_remove = None
         if isinstance(element, str):
-            element_to_remove = None
             for list_element in self.elements:
                 if list_element.id == element:
                     element_to_remove = list_element
                     break
-            # if object that is being deleted is currently selected, reset the class attribute
-            self.selected_element = None if element_to_remove == self.selected_element else self.selected_element
-            self.elements.remove(element_to_remove)
-
         elif isinstance(element, DLW_ListElement):
-            self.selected_element = None if element == self.selected_element else self.selected_element
-            self.elements.remove(element)
+            element_to_remove = element
+
+        # remove the list item safely
+        self.safeListItemRemoval(element_to_remove)
 
         # update the gui of the list - clear all the widgets and add them once again
         self.updateListGUI()
 
         return self
+
+    # function to safely remove element from list - considering unsubscribing event handler, updating selected item
+    # reference etc...
+    def safeListItemRemoval(self, element_to_remove):
+        if element_to_remove is not None:
+            # if object that is being deleted is currently selected, reset the class attribute
+            self.selected_element = None if element_to_remove == self.selected_element else self.selected_element
+            element_to_remove.unsubscribeHandler()
+            self.elements.remove(element_to_remove)
+        else:
+            raise ValueError('Cannot remove element from list. Element is None.')
 
     # function to clear and draw all list items once again
     def updateListGUI(self):

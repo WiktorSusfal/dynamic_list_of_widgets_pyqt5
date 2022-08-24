@@ -1,5 +1,5 @@
 # dynamic_list_of_widgets_pyqt5
-PyQt5 custom widget to store custom given elements in the form of list
+PyQt5 custom widget to store custom given elements in the form of list. Presentation video (of version 1.0): https://www.youtube.com/watch?v=OIqxCw0OQ4k
 
 # Modules:
 - DLW_GUIList.py - contains classes related to dynamic list and items for the list

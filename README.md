@@ -16,6 +16,7 @@ List class ("DLW_List") supports following:
 
 # Interface
 Basically there is a need only to interact with "DLW_List" class. "DLW_ListElement" class is created for internal use of "DLW_List".
+
 "DLW_List" useful attributes:
 - elements - python list of "DLW_ListElement" objects currently added to list
 - selected_element - reference to currently selected "DLW_ListElement" object.

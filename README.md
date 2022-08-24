@@ -2,9 +2,9 @@
 PyQt5 custom widget to store custom given elements in the form of list
 
 # Modules:
-DLW_GUIList.py - contains classes related to dynamic list and items for the list
-DLW_EventHandler.py - contains event handler class to allow communication between items present on the list and list object itself
-main.py - example of use
+- DLW_GUIList.py - contains classes related to dynamic list and items for the list
+- DLW_EventHandler.py - contains event handler class to allow communication between items present on the list and list object itself
+- main.py - example of use
 
 # Features of list
 List class ("DLW_List") supports following:

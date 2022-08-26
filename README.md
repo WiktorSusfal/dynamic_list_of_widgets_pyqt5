@@ -20,6 +20,7 @@ Basically there is a need only to interact with "DLW_List" class. "DLW_ListEleme
 "DLW_List" useful attributes:
 - elements - python list of "DLW_ListElement" objects currently added to list
 - selected_element - reference to currently selected "DLW_ListElement" object.
+- selected_element_changed_handler - 'DLW_EventHandler' class instance to provide automatic notifications on changes of currently selected list item. Just subscribe to it by adding relevant function using "+=" operator. This function(s) will be invoked always when selected element changes, and the reference to this element will be passed as an argument. Check the main.py - example of use.
 
 "DLW_List" useful operators:
 - += - accepts "QLayout" object type and creates "DLW_ListElement" object based on it internally (automatically). When building custom objects to be stored in a list it is recommended to use classes that inherit from "QLayout" directly.

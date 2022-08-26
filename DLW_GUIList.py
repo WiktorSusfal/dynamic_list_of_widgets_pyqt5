@@ -130,6 +130,9 @@ class DLW_List(qtw.QWidget):
         self.selection_handler = eh.DLW_EventHandler()
         self.selection_handler += self.requestHandler
 
+        # event handler object to communicate about new list item selected to subscribers
+        self.selected_element_changed_handler = eh.DLW_EventHandler()
+
         # setting main layout of the list
         self.main_layout = qtw.QVBoxLayout()
         self.setLayout(self.main_layout)
@@ -199,6 +202,9 @@ class DLW_List(qtw.QWidget):
         elif request_type == DLW_Requests.DELETION.value:
             # delete element from list
             self -= event_actor
+
+        # Publish information about change of the current selected element
+        self.selected_element_changed_handler(self.selected_element)
 
     # method to update the reference to the current selected item
     def updateSelectedItem(self, event_actor):

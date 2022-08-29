@@ -10,22 +10,30 @@ LIST_ITEM_NOT_SELECTED_OPACITY = 0.7
 LIST_ITEM_SELECTED_OPACITY = 1.0
 
 
-# enum for storing different request types that list items ('DLW_ListElement' objects)
-# can send to list object ('DLW_List') via event handler ('DLW_EventHandler.DLW_EventHandler')
 class DLW_Requests(Enum):
+    """
+    Enum for storing different request types that list items ('DLW_ListElement' objects) can send to list object
+    ('DLW_List' instance) via event handler ('DLW_EventHandler.DLW_EventHandler').
+    """
     SELECTION = 0
     DELETION = 1
 
 
-# enum for storing different key values for dictionary which is sent as event argument during list usage
 class DLW_Event_Attributes(Enum):
+    """
+    Enum for storing different key values for dictionary which is sent as event argument during list usage.
+    """
     EVENT_ACTOR = 0
     REQUEST_TYPE = 1
 
 
-# function to build event arguments based on predefined keys and values;
-# list of values provided must conform the order of keys stored in enum 'DLW_Event_Attributes'
 def buildEventArgs(values: list) -> dict:
+    """
+    Function to build dictionary of event arguments based on predefined keys and values.
+     :param values: List of values provided - must conform the order of keys stored in enum 'DLW_Event_Attributes'.
+     :return: Dictionary whose keys conform the values stored in enum 'DLW_Event_Attributes'.
+    """
+
     args, i = {}, 0
     for attribute in DLW_Event_Attributes:
         args[attribute.value] = values[i]
@@ -34,10 +42,18 @@ def buildEventArgs(values: list) -> dict:
     return args
 
 
-# class for common representation of list element
 class DLW_ListElement(qtw.QWidget):
+    """
+    Class for common representation of list element
+    """
 
     def __init__(self, element_layout: qtw.QLayout, uid: str, s_handler: eh.DLW_EventHandler):
+        """
+        Constructor of list element object instance.
+         :param element_layout: QLayout object that represents GUI layout of the list item.
+         :param uid: Unique string id of list element.
+         :param s_handler: Instance of DLW_EventHandler for communication with main list object.
+        """
         super().__init__()
 
         # unique id of element - in the scope of current list
@@ -62,31 +78,51 @@ class DLW_ListElement(qtw.QWidget):
         self.main_layout = element_layout
         self.setLayout(self.main_layout)
 
-    # function is automatically called when mouse-release event is captured on the list item
     def mouseReleaseEvent(self, event):
+        """
+        Function is automatically called when mouse-release event is captured on the list item. It is used here to
+        send a request to main list object for changing the current selected item.
+         :param event: Default event parameter common for PyQt5.
+         :return: None
+        """
         # relevant event is triggered only by mouse left-button
         if event.button() == qtc.Qt.LeftButton:
             # trigger the event handler object and pass created argument's dictionary
             event_arguments = buildEventArgs([self, DLW_Requests.SELECTION.value])
             self.selection_handler(event_arguments)
 
-    # function is automatically called when mouse-right-click event is captured on the list item
     def contextMenuEvent(self, event):
+        """
+        Function is automatically called when mouse-right-click event is captured on the list item. It is used here
+        to present a context menu for each list item to allow e.g. deletion of item.
+         :param event: Default event parameter common for PyQt5.
+         :return: None
+        """
         self.c_menu.popup(qtg.QCursor.pos())
 
-    # function is bind to every item's contex menu option - for object deleting;
-    # it triggers the event handler with proper request type (DELETION)
     def deleteObjectFromList(self):
+        """
+        Function is bind to every item's contex menu option - for object deleting. It triggers the event handler with
+        proper request type (DELETION)
+         :return: None
+        """
         event_arguments = buildEventArgs([self, DLW_Requests.DELETION.value])
         self.selection_handler(event_arguments)
 
-    # function to unsubscribe from event handler before deleting object;
-    # is called on the main list object level
     def unsubscribeHandler(self):
+        """
+        Function to unsubscribe from event handler before deleting object. It is called on the main list object level.
+            :return: None
+        """
         self.selection_handler -= self.itemRequestHandler
 
-    # function is called when event handler object is triggered by some list item;
-    def itemRequestHandler(self, event_arguments):
+    def itemRequestHandler(self, event_arguments: dict):
+        """
+        Function is called when event handler object is triggered by some list item. Processes the event of list item's
+        selection
+            :param event_arguments: Dictionary whose keys conform the values from enum: DLW_Event_Attributes.
+            :return: None
+        """
         # parse event arguments
         event_actor = event_arguments[DLW_Event_Attributes.EVENT_ACTOR.value]
         request_type = event_arguments[DLW_Event_Attributes.REQUEST_TYPE.value]
@@ -98,8 +134,11 @@ class DLW_ListElement(qtw.QWidget):
             # adjust list item opacity based on the 'selected' flag
             self.setListItemOpacity()
 
-    # function to adjust list item opacity based on the 'selected' flag
     def setListItemOpacity(self):
+        """
+        Function to adjust list item opacity based on the 'selected' flag
+            :return: None
+        """
         if self.selected:
             self.opacity_effect.setOpacity(LIST_ITEM_SELECTED_OPACITY)
         else:
@@ -108,17 +147,22 @@ class DLW_ListElement(qtw.QWidget):
         self.setGraphicsEffect(self.opacity_effect)
 
 
-# delete all widgets from given layout - used to empty the list of widgets
 def clearLayout(layout):
+    """
+    Delete all widgets from given layout - used to empty the list of widgets
+        :param layout: QLayout object which all the component layouts should be deleted from.
+        :return: None
+    """
     while layout.count() > 0:
         item = layout.itemAt(0)
         widget = item.widget()
         layout.removeWidget(widget)
 
 
-# class for representation of dynamic list
 class DLW_List(qtw.QWidget):
-
+    """
+    Class for representation of dynamic list
+    """
     def __init__(self):
         super().__init__()
 
@@ -137,10 +181,14 @@ class DLW_List(qtw.QWidget):
         self.main_layout = qtw.QVBoxLayout()
         self.setLayout(self.main_layout)
 
-    # overload of '+=' operator to add elements to list
-    # operator accepts 'QLayout' object types and creates 'DLW_ListElement' objects based on them internally.
-    # this way it is easier to assign proper event handler for every list item (in the constructor of list item)
     def __iadd__(self, element: qtw.QLayout):
+        """
+        Overload of '+=' operator to add elements to list. Operator accepts 'QLayout' object types and creates
+        'DLW_ListElement' objects based on them internally. This way it is easier to assign proper event handler for
+        every list item (in the constructor of list item).
+            :param element: QLayout object that represents GUI of list item.
+            :return: None
+        """
         element_id = str(uuid.uuid4())
         self.elements.append(DLW_ListElement(element, element_id, self.selection_handler))
         # update the gui of the list - clear all the widgets and add them once again
@@ -148,9 +196,13 @@ class DLW_List(qtw.QWidget):
 
         return self
 
-    # overload of '-=' operator to remove elements from list
-    # support for removing items by item object reference or item string uuid
     def __isub__(self, element):
+        """
+        Overload of '-=' operator to remove elements from list. Support for removing items by item object reference or
+        tem string uuid.
+            :param element: 'DLW_ListElement' object or string uuid of list element to remove.
+            :return: None
+        """
         element_to_remove = None
         if isinstance(element, str):
             for list_element in self.elements:
@@ -168,30 +220,45 @@ class DLW_List(qtw.QWidget):
 
         return self
 
-    # function to safely remove element from list - considering unsubscribing event handler, updating selected item
-    # reference etc...
-    def safeListItemRemoval(self, element_to_remove):
+    def safeListItemRemoval(self, element_to_remove: DLW_ListElement):
+        """
+        Function to safely remove element from list - considering unsubscribing event handler, updating selected item
+        reference etc...
+            :param element_to_remove: 'DLW_ListElement' object to remove
+            :return: None
+        """
         if element_to_remove is not None:
             # if object that is being deleted is currently selected, reset the class attribute
-            self.selected_element = None if element_to_remove == self.selected_element else self.selected_element
+            if element_to_remove == self.selected_element:
+                self.selected_element = None
+                # Publish information about change of the current selected element
+                self.selected_element_changed_handler(self.selected_element)
+
             element_to_remove.unsubscribeHandler()
             self.elements.remove(element_to_remove)
         else:
             raise ValueError('Cannot remove element from list. Element is None.')
 
-    # function to clear and draw all list items once again
     def updateListGUI(self):
+        """
+        Function to clear and draw all list items once again.
+            :return: None
+        """
         clearLayout(self.main_layout)
         for element in self.elements:
             self.main_layout.addWidget(element)
 
         self.main_layout.addStretch()
 
-    # this function is called when event handler object is triggered by some list item;
-    # event handler stores callback functions in a python list, so they are called always in the adding order.
-    # this function is called always before callbacks from list items.
-    # perform relevant action based on the value of request type sent from list item
     def requestHandler(self, event_arguments: dict):
+        """
+        This function is called when event handler object is triggered by some list item.
+        Event handler stores callback functions in a python list, so they are called always in the adding order. This
+        function is called always before callbacks from list items.
+        Perform relevant action based on the value of request type sent from list item.
+            :param event_arguments: Dictionary whose keys conform the values from 'DLW_Event_Attributes' enum.
+            :return: None
+        """
         # parse event arguments
         event_actor = event_arguments[DLW_Event_Attributes.EVENT_ACTOR.value]
         request_type = event_arguments[DLW_Event_Attributes.REQUEST_TYPE.value]
@@ -199,15 +266,18 @@ class DLW_List(qtw.QWidget):
         if request_type == DLW_Requests.SELECTION.value:
             # update the reference to the current selected item
             self.updateSelectedItem(event_actor)
+            # Publish information about change of the current selected element
+            self.selected_element_changed_handler(self.selected_element)
         elif request_type == DLW_Requests.DELETION.value:
             # delete element from list
             self -= event_actor
 
-        # Publish information about change of the current selected element
-        self.selected_element_changed_handler(self.selected_element)
-
-    # method to update the reference to the current selected item
-    def updateSelectedItem(self, event_actor):
+    def updateSelectedItem(self, event_actor: DLW_ListElement):
+        """
+        Method to update the reference to the current selected item.
+            :param event_actor: DLW_ListElement to update.
+            :return: None
+        """
         # if the list item, which the mouse event was captured on, wasn't selected before, it is the selected item now
         # if the list item was selected before, it is unchecked now and there is no selected item
         if not event_actor.selected:

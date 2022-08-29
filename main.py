@@ -37,7 +37,7 @@ class MainWindow(qtw.QMainWindow):
         self.show()
 
     @staticmethod
-    def printCurrentSelectedElementID(self, element: dlwgl.DLW_ListElement):
+    def printCurrentSelectedElementID(element: dlwgl.DLW_ListElement):
         if element is not None:
             print("Current element's id: " + str(element.id))
         else:
